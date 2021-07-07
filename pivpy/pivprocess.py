@@ -16,12 +16,12 @@ def _correlation_list(
 
     for j in range(x_grid.shape[0]):
         for i in range(x_grid.shape[1]):
-            index_j = x_grid[j, i]
-            index_i = y_grid[j, i]
+            index_j = y_grid[j, i]
+            index_i = x_grid[j, i]
             window_img0 = img0[int(index_j - interrogation_window[0] // 2):int(index_j + interrogation_window[0] // 2),
                                int(index_i - interrogation_window[1] // 2):int(index_i + interrogation_window[1] // 2)]
 
-            correlation_list[:, :, j * x_grid.shape[0] + i] = _correlation_map(
+            correlation_list[:, :, j * x_grid.shape[1] + i] = _correlation_map(
                 window_img0, img1, interrogation_window, search_window, index_j, index_i)
     return correlation_list
 
@@ -102,7 +102,7 @@ def normal_piv(
     correlation_list = _correlation_list(img0, img1, x_grid, y_grid, interrogation_window, search_window)
     for j in range(x_grid.shape[0]):
         for i in range(x_grid.shape[1]):
-            peak_j, peak_i = _detect_peak(correlation_list[:, :, j * x_grid.shape[0] + i])
+            peak_j, peak_i = _detect_peak(correlation_list[:, :, j * x_grid.shape[1] + i])
             vector_v[j, i] = peak_j + search_window[0]
             vector_u[j, i] = peak_i + search_window[2]
 
