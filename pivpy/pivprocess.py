@@ -53,15 +53,16 @@ def _detect_peak(correlation_map):
             value2 = max(correlation_map[peak_j + 1, peak_i], 0.01)
             value3 = max(correlation_map[peak_j, peak_i - 1], 0.01)
             value4 = max(correlation_map[peak_j, peak_i + 1], 0.01)
-            delta_j = peak_j + 0.5 * (np.log(value1) - np.log(value2)) / (np.log(value1) + np.log(value2) - 2*np.log(value0))
-            delta_i = peak_i + 0.5 * (np.log(value3) - np.log(value4)) / (np.log(value3) + np.log(value4) - 2*np.log(value0))
-            if np.isnan(delta_j):
-                delta_j = peak_j
-            if np.isnan(delta_i):
-                delta_i = peak_i
-            return delta_j, delta_i
         except IndexError:
             return peak_j, peak_i
+
+        delta_j = peak_j + 0.5 * (np.log(value1) - np.log(value2)) / (np.log(value1) + np.log(value2) - 2*np.log(value0))
+        delta_i = peak_i + 0.5 * (np.log(value3) - np.log(value4)) / (np.log(value3) + np.log(value4) - 2*np.log(value0))
+        if np.isnan(delta_j):
+            delta_j = peak_j
+        if np.isnan(delta_i):
+            delta_i = peak_i
+        return delta_j, delta_i
 
     correlation_map[np.isnan(correlation_map)] = 0
 
