@@ -9,25 +9,28 @@ def _correlation_list(
         x_grid,
         y_grid,
         interrogation_window,
-        search_window):
+        search_window,
+        xoffset,
+        yoffset,
+        cal_area):
 
     correlation_list = np.zeros((
         int(search_window[1] - search_window[0] + 1), int(search_window[3] - search_window[2] + 1), int(x_grid.shape[0] * x_grid.shape[1])))
 
     for j in range(x_grid.shape[0]):
         for i in range(x_grid.shape[1]):
-            index_j = y_grid[j, i]
-            index_i = x_grid[j, i]
-            window_img0 = img0[int(index_j - interrogation_window[0] // 2):int(index_j + interrogation_window[0] // 2),
-                               int(index_i - interrogation_window[1] // 2):int(index_i + interrogation_window[1] // 2)]
+            if cal_area[j, i] == 1:
+                index_j = int(y_grid[j, i])
+                index_i = int(x_grid[j, i])
+                window_img0 = img0[int(index_j - interrogation_window[0] // 2):int(index_j + interrogation_window[0] // 2),
+                                   int(index_i - interrogation_window[1] // 2):int(index_i + interrogation_window[1] // 2)]
 
-            correlation_list[:, :, j * x_grid.shape[1] + i] = _correlation_map(
-                window_img0, img1, interrogation_window, search_window, index_j, index_i)
+                correlation_list[:, :, j * x_grid.shape[1] + i] = _correlation_map(
+                    window_img0, img1, interrogation_window, search_window, index_j + yoffset[j, i], index_i + xoffset[j, i])
     return correlation_list
 
 
 def _correlation_map(window_img0, img1, interrogation_window, search_window, index_j, index_i):
-    """operate correctly"""
     correlation_map = np.zeros((search_window[1] - search_window[0] + 1, search_window[3] - search_window[2] + 1))
 
     for dj in range(search_window[0], search_window[1] + 1):
@@ -95,16 +98,46 @@ def normal_piv(
         x_grid,
         y_grid,
         interrogation_window,
-        search_window):
+        search_window,
+        xoffset,
+        yoffset):
 
     vector_u = np.zeros(x_grid.shape)
     vector_v = np.zeros(x_grid.shape)
 
-    correlation_list = _correlation_list(img0, img1, x_grid, y_grid, interrogation_window, search_window)
+    correlation_list = _correlation_list(img0, img1, x_grid, y_grid, interrogation_window, search_window, xoffset, yoffset)
     for j in range(x_grid.shape[0]):
         for i in range(x_grid.shape[1]):
             peak_j, peak_i = _detect_peak(correlation_list[:, :, j * x_grid.shape[1] + i])
-            vector_v[j, i] = peak_j + search_window[0]
-            vector_u[j, i] = peak_i + search_window[2]
+            vector_v[j, i] = peak_j + search_window[0] + yoffset[j, i]
+            vector_u[j, i] = peak_i + search_window[2] + xoffset[j, i]
+
+    return vector_u, vector_v
+
+
+def emsemble_piv(
+        img0,
+        img1,
+        x_grid,
+        y_grid,
+        interrogation_window,
+        search_window,
+        xoffset,
+        yoffset,
+        cal_area):
+
+    vector_u = np.zeros(x_grid.shape)
+    vector_v = np.zeros(x_grid.shape)
+
+    correlation_list = np.zeros((
+        int(search_window[1] - search_window[0] + 1), int(search_window[3] - search_window[2] + 1), int(x_grid.shape[0] * x_grid.shape[1])))
+    for pair_num in range(img0.shape[2]):
+        correlation_list = correlation_list + _correlation_list(img0[:, :, pair_num], img1[:, :, pair_num],
+                                                                x_grid, y_grid, interrogation_window, search_window, xoffset, yoffset, cal_area)
+    for j in range(x_grid.shape[0]):
+        for i in range(x_grid.shape[1]):
+            peak_j, peak_i = _detect_peak(correlation_list[:, :, j * x_grid.shape[1] + i])
+            vector_v[j, i] = peak_j + search_window[0] + yoffset[j, i]
+            vector_u[j, i] = peak_i + search_window[2] + xoffset[j, i]
 
     return vector_u, vector_v
