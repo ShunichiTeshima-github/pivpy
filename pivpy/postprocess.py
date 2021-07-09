@@ -53,3 +53,28 @@ def _interpolation(value_2d, filter):
                 value_return[j-1, i-1] = value_2d[j-1, i-1]
 
     return value_return
+
+
+def error_vector_interp_2d(vector_x, vector_y, eps=0.3, thresh=5):
+    vector_x = _interpolate_nan(vector_x)
+    vector_y = _interpolate_nan(vector_y)
+    filter_x = _median_test(vector_x, eps=eps, thresh=thresh)
+    filter_y = _median_test(vector_y, eps=eps, thresh=thresh)
+    filter_error = filter_x + filter_y
+    vector_x = _interpolation(vector_x, filter_error)
+    vector_y = _interpolation(vector_y, filter_error)
+    return vector_x, vector_y, filter_error
+
+
+def error_vector_interp_3d(vector_x, vector_y, vector_z, eps=0.3, thresh=5):
+    vector_x = _interpolate_nan(vector_x.copy())
+    vector_y = _interpolate_nan(vector_y.copy())
+    vector_z = _interpolate_nan(vector_z.copy())
+    filter_x = _median_test(vector_x, eps=eps, thresh=thresh)
+    filter_y = _median_test(vector_y, eps=eps, thresh=thresh)
+    filter_z = _median_test(vector_z, eps=eps, thresh=thresh)
+    filter_error = filter_x + filter_y + filter_z
+    vector_x = _interpolation(vector_x.copy(), filter_error)
+    vector_y = _interpolation(vector_y.copy(), filter_error)
+    vector_z = _interpolation(vector_z.copy(), filter_error)
+    return vector_x, vector_y, vector_z, filter_error

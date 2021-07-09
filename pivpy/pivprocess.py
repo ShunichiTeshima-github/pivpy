@@ -52,16 +52,16 @@ def _correlation_map(window_img0, img1, interrogation_window, search_window, ind
 def _detect_peak(correlation_map):
     def _sub_pixel_interpolation():
         try:
-            value0 = max(correlation_map[peak_j, peak_i], 0.01)
-            value1 = max(correlation_map[peak_j - 1, peak_i], 0.01)
-            value2 = max(correlation_map[peak_j + 1, peak_i], 0.01)
-            value3 = max(correlation_map[peak_j, peak_i - 1], 0.01)
-            value4 = max(correlation_map[peak_j, peak_i + 1], 0.01)
+            VALUE0 = max(correlation_map[peak_j, peak_i], 0.01)
+            VALUE1 = max(correlation_map[peak_j - 1, peak_i], 0.01)
+            VALUE2 = max(correlation_map[peak_j + 1, peak_i], 0.01)
+            VALUE3 = max(correlation_map[peak_j, peak_i - 1], 0.01)
+            VALUE4 = max(correlation_map[peak_j, peak_i + 1], 0.01)
         except IndexError:
             return peak_j, peak_i
 
-        delta_j = peak_j + 0.5 * (np.log(value1) - np.log(value2)) / (np.log(value1) + np.log(value2) - 2*np.log(value0))
-        delta_i = peak_i + 0.5 * (np.log(value3) - np.log(value4)) / (np.log(value3) + np.log(value4) - 2*np.log(value0))
+        delta_j = peak_j + 0.5 * (np.log(VALUE1) - np.log(VALUE2)) / (np.log(VALUE1) + np.log(VALUE2) - 2*np.log(VALUE0))
+        delta_i = peak_i + 0.5 * (np.log(VALUE3) - np.log(VALUE4)) / (np.log(VALUE3) + np.log(VALUE4) - 2*np.log(VALUE0))
         if np.isnan(delta_j):
             delta_j = peak_j
         if np.isnan(delta_i):
