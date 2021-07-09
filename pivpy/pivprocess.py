@@ -116,7 +116,7 @@ def normal_piv(
     return vector_u, vector_v
 
 
-def emsemble_piv(
+def ensemble_piv(
         img0,
         img1,
         x_grid,
@@ -126,6 +126,47 @@ def emsemble_piv(
         xoffset,
         yoffset,
         cal_area):
+    """Particle image velocimetry with ensemble correlation
+
+    Velocity field estimation from particle images (Particle image velocimetry, PIV)
+    Calculate direct correlation coefficient and take average in correlation field
+
+    Parameters
+    ----------
+    img0 : 3d_ndarray
+        particle images stacked in component3 direction. particle images must be gray scale.
+    img1 : 3d_ndarray
+        particle images photographed after dt[s] stacked in component3 direction. particle images must be gray scale.
+    x_grid :
+    y_grid :
+    interrogation_window :
+    search_window :
+    xoffset :
+    yoffset :
+    cal_area :
+
+    Returns
+    -------
+    type
+        2d_ndarray
+    describe : type
+        brbrbrbr
+    out : (2d_ndarray, 2d_ndarray)
+        velocity field (u, v)
+
+    Examples
+    --------
+    >>> import cv2
+    >>> import numpy as np
+    >>> from pivpy import pivprocess
+
+    >>> img_all = cv2.imread('./img%04d.bmp' % 0, 0)
+    >>> for i in range(1, 10):
+    >>>     img = cv2.imread('./img%04d.bmp' % i, 0)
+    >>>     img_all = np.dstack([img_all, img])
+    >>> velocity_u, velocity_v = pivprocess.ensemble_piv(img_all[:, :, :-2], img_all[:, :, 1:-1])
+
+    """
     if img0.shape != img1.shape:
         sys.exit(1)
 
