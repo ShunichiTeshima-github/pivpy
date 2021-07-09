@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import numpy as np
+import sys
 from scipy.ndimage import maximum_filter
 
 
@@ -26,7 +27,7 @@ def _correlation_list(
                                    int(index_i - interrogation_window[1] // 2):int(index_i + interrogation_window[1] // 2)]
 
                 correlation_list[:, :, j * x_grid.shape[1] + i] = _correlation_map(
-                    window_img0, img1, interrogation_window, search_window, index_j + yoffset[j, i], index_i + xoffset[j, i])
+                    window_img0, img1, interrogation_window, search_window, index_j + int(yoffset[j, i]), index_i + int(xoffset[j, i]))
     return correlation_list
 
 
@@ -109,8 +110,8 @@ def normal_piv(
     for j in range(x_grid.shape[0]):
         for i in range(x_grid.shape[1]):
             peak_j, peak_i = _detect_peak(correlation_list[:, :, j * x_grid.shape[1] + i])
-            vector_v[j, i] = peak_j + search_window[0] + yoffset[j, i]
-            vector_u[j, i] = peak_i + search_window[2] + xoffset[j, i]
+            vector_v[j, i] = peak_j + search_window[0] + int(yoffset[j, i])
+            vector_u[j, i] = peak_i + search_window[2] + int(xoffset[j, i])
 
     return vector_u, vector_v
 
@@ -125,6 +126,8 @@ def emsemble_piv(
         xoffset,
         yoffset,
         cal_area):
+    if img0.shape != img1.shape:
+        sys.exit(1)
 
     vector_u = np.zeros(x_grid.shape)
     vector_v = np.zeros(x_grid.shape)
@@ -136,8 +139,13 @@ def emsemble_piv(
                                                                 x_grid, y_grid, interrogation_window, search_window, xoffset, yoffset, cal_area)
     for j in range(x_grid.shape[0]):
         for i in range(x_grid.shape[1]):
-            peak_j, peak_i = _detect_peak(correlation_list[:, :, j * x_grid.shape[1] + i])
-            vector_v[j, i] = peak_j + search_window[0] + yoffset[j, i]
-            vector_u[j, i] = peak_i + search_window[2] + xoffset[j, i]
+            if cal_area[j, i] == 1:
+                peak_j, peak_i = _detect_peak(correlation_list[:, :, j * x_grid.shape[1] + i])
+                if np.isnan(peak_j):
+                    peak_j = 0.0
+                if np.isnan(peak_i):
+                    peak_i = 0.0
+                vector_v[j, i] = peak_j + search_window[0] + int(yoffset[j, i])
+                vector_u[j, i] = peak_i + search_window[2] + int(xoffset[j, i])
 
     return vector_u, vector_v
