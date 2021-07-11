@@ -3,16 +3,85 @@ import numpy as np
 
 
 def _interpolate_nan(value_2d):
-    for j in range(value_2d.shape[0]):
-        for i in range(value_2d.shape[1]):
-            if j > 1 and j < value_2d.shape[0]-2 and i > 1 and i < value_2d.shape[1]-2:
+    print('Number of NAN value : ', end='')
+    print('%d / %d' % (np.count_nonzero(np.isnan(value_2d)), value_2d.size))
+
+    W = 1 / (2**0.5)
+    for j in range(1, value_2d.shape[0]-1):
+        for i in range(1, value_2d.shape[1]-1):
+            if np.isnan(value_2d[j, i]):
+                value_2d[j, i] = (value_2d[j+1, i] + value_2d[j-1, i] + value_2d[j, i+1] + value_2d[j, i-1]) / (4 + 4*W) + (
+                                 value_2d[j+1, i+1] + value_2d[j+1, i-1] + value_2d[j-1, i+1] + value_2d[j-1, i-1]) * W / (4 + 4*W)
+
+    for j in range(1, value_2d.shape[0]-1):
+        i = 0
+        if np.isnan(value_2d[j, i]):
+            value_2d[j, i] = (value_2d[j+1, i] + value_2d[j-1, i] + value_2d[j, i+1]) / (3 + 3*W) + (
+                             value_2d[j+1, i+1] + value_2d[j-1, i+1]) * W / (2 + 2*W)
+        i = value_2d.shape[1]-1
+        if np.isnan(value_2d[j, i]):
+            value_2d[j, i] = (value_2d[j+1, i] + value_2d[j-1, i] + value_2d[j, i-1]) / (3 + 3*W) + (
+                             value_2d[j+1, i-1] + value_2d[j-1, i-1]) * W / (2 + 2*W)
+
+    for i in range(1, value_2d.shape[1]-1):
+        j = 0
+        if np.isnan(value_2d[j, i]):
+            value_2d[j, i] = (value_2d[j+1, i] + value_2d[j, i-1] + value_2d[j, i+1]) / (3 + 3*W) + (
+                             value_2d[j+1, i+1] + value_2d[j+1, i-1]) * W / (2 + 2*W)
+        j = value_2d.shape[0]-1
+        if np.isnan(value_2d[j, i]):
+            value_2d[j, i] = (value_2d[j, i+1] + value_2d[j-1, i] + value_2d[j, i-1]) / (3 + 3*W) + (
+                             value_2d[j-1, i+1] + value_2d[j-1, i-1]) * W / (2 + 2*W)
+
+    if np.isnan(value_2d[0, 0]):
+        value_2d[0, 0] = (value_2d[1, 0] + value_2d[0, 1]) / (2 + 2*W) + value_2d[1, 1] * W / (1 + 1*W)
+    if np.isnan(value_2d[-1, 0]):
+        value_2d[-1, 0] = (value_2d[-2, 0] + value_2d[-1, 1]) / (2 + 2*W) + value_2d[-2, 1] * W / (1 + 1*W)
+    if np.isnan(value_2d[0, -1]):
+        value_2d[0, -1] = (value_2d[0, -2] + value_2d[1, -1]) / (2 + 2*W) + value_2d[1, -2] * W / (1 + 1*W)
+    if np.isnan(value_2d[-1, -1]):
+        value_2d[-1, -1] = (value_2d[-1, -2] + value_2d[-2, -1]) / (2 + 2*W) + value_2d[-2, -2] * W / (1 + 1*W)
+
+    print('Number of NAN value : ', end='')
+    print('%d / %d' % (np.count_nonzero(np.isnan(value_2d)), value_2d.size))
+
+    last_nan_count = np.count_nonzero(np.isnan(value_2d))
+
+    while True:
+        for j in range(1, value_2d.shape[0]-1):
+            for i in range(1, value_2d.shape[1]-1):
                 if np.isnan(value_2d[j, i]):
-                    value_2d[j, i] = np.nanmean((
-                        value_2d[j+1, i+1], value_2d[j+1, i], value_2d[j+1, i-1], value_2d[j, i+1],
-                        value_2d[j, i-1], value_2d[j-1, i+1], value_2d[j-1, i], value_2d[j-1, i-1]))
-            else:
-                if np.isnan(value_2d[j, i]):
-                    value_2d[j, i] = 0.0
+                    value_2d[j, i] = np.nanmean([value_2d[j+1, i], value_2d[j-1, i], value_2d[j, i+1], value_2d[j, i-1],
+                                                value_2d[j+1, i+1], value_2d[j+1, i-1], value_2d[j-1, i+1], value_2d[j-1, i-1]])
+        for i in range(1, value_2d.shape[1]-1):
+            j = 0
+            if np.isnan(value_2d[j, i]):
+                value_2d[j, i] = np.nanmean([value_2d[j+1, i], value_2d[j, i+1], value_2d[j, i-1], value_2d[j+1, i+1], value_2d[j+1, i-1]])
+            j = value_2d.shape[0]-1
+            if np.isnan(value_2d[j, i]):
+                value_2d[j, i] = np.nanmean([value_2d[j-1, i], value_2d[j, i+1], value_2d[j, i-1], value_2d[j-1, i+1], value_2d[j-1, i-1]])
+
+        for j in range(1, value_2d.shape[0]-1):
+            i = 0
+            if np.isnan(value_2d[j, i]):
+                value_2d[j, i] = np.nanmean([value_2d[j+1, i], value_2d[j-1, i], value_2d[j, i+1], value_2d[j+1, i+1], value_2d[j-1, i+1]])
+            i = value_2d.shape[1]-1
+            if np.isnan(value_2d[j, i]):
+                value_2d[j, i] = np.nanmean([value_2d[j+1, i], value_2d[j-1, i], value_2d[j, i-1], value_2d[j+1, i-1], value_2d[j-1, i-1]])
+
+        if np.isnan(value_2d[0, 0]):
+            value_2d[0, 0] = np.nanmean([value_2d[1, 0], value_2d[0, 1], value_2d[1, 1]])
+        if np.isnan(value_2d[-1, 0]):
+            value_2d[-1, 0] = np.nanmean([value_2d[-2, 0], value_2d[-1, 1], value_2d[-2, 1]])
+        if np.isnan(value_2d[0, -1]):
+            value_2d[0, -1] = np.nanmean([value_2d[0, -2], value_2d[1, -1], value_2d[1, -2]])
+        if np.isnan(value_2d[-1, -1]):
+            value_2d[-1, -1] = np.nanmean([value_2d[-1, -2], value_2d[-2, -1], value_2d[-2, -2]])
+
+        if np.count_nonzero(np.isnan(value_2d)) == 0 or np.count_nonzero(np.isnan(value_2d)) == last_nan_count:
+            break
+        else:
+            last_nan_count = np.count_nonzero(np.isnan(value_2d))
     return value_2d
 
 

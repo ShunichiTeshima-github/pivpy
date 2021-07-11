@@ -182,10 +182,6 @@ def ensemble_piv(
         for i in range(x_grid.shape[1]):
             if cal_area[j, i] == 1:
                 peak_j, peak_i = _detect_peak(correlation_list[:, :, j * x_grid.shape[1] + i])
-                if np.isnan(peak_j):
-                    peak_j = 0.0
-                if np.isnan(peak_i):
-                    peak_i = 0.0
                 vector_v[j, i] = peak_j + search_window[0] + int(yoffset[j, i])
                 vector_u[j, i] = peak_i + search_window[2] + int(xoffset[j, i])
 
