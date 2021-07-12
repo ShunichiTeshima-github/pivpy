@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
+import copy
 import numpy as np
 
 
-def _interpolate_nan(value_2d):
+def _interpolate_nan(value):
+    value_2d = copy.deepcopy(value)
     print('Number of NAN value : ', end='')
     print('%d / %d' % (np.count_nonzero(np.isnan(value_2d)), value_2d.size))
 
@@ -104,24 +106,45 @@ def _median_test(value_2d, eps, thresh):
     return value_return
 
 
-def _interpolation(value_2d, filter):
-    value_2d[filter != 0.0] = np.nan
-    check = np.zeros((value_2d.shape[0] + 2, value_2d.shape[1] + 2))
-    check[:, :] = np.nan
-    check[1: value_2d.shape[0] + 1, 1: value_2d.shape[1] + 1] = value_2d
-    value_return = np.zeros(value_2d.shape)
+def _interpolation(value, filter):
+    value_2d = copy.deepcopy(value)
+    W = 1 / (2**0.5)
+    for j in range(1, value_2d.shape[0]-1):
+        for i in range(1, value_2d.shape[1]-1):
+            if np.isnan(value_2d[j, i]):
+                value_2d[j, i] = (value_2d[j+1, i] + value_2d[j-1, i] + value_2d[j, i+1] + value_2d[j, i-1]) / (4 + 4*W) + (
+                                 value_2d[j+1, i+1] + value_2d[j+1, i-1] + value_2d[j-1, i+1] + value_2d[j-1, i-1]) * W / (4 + 4*W)
 
-    for j in range(1, value_2d.shape[0] + 1):
-        for i in range(1, value_2d.shape[1] + 1):
-            if filter[j-1, i-1] != 0.0:
-                value_list = np.array([check[j-1, i-1], check[j-1, i], check[j-1, i+1], check[j, i-1],
-                                      check[j, i+1], check[j+1, i-1], check[j+1, i], check[j+1, i+1]])
-                value_list = value_list[~np.isnan(value_list)]
-                value_return[j-1, i-1] = np.mean(value_list)
-            else:
-                value_return[j-1, i-1] = value_2d[j-1, i-1]
+    for j in range(1, value_2d.shape[0]-1):
+        i = 0
+        if np.isnan(value_2d[j, i]):
+            value_2d[j, i] = (value_2d[j+1, i] + value_2d[j-1, i] + value_2d[j, i+1]) / (3 + 3*W) + (
+                             value_2d[j+1, i+1] + value_2d[j-1, i+1]) * W / (2 + 2*W)
+        i = value_2d.shape[1]-1
+        if np.isnan(value_2d[j, i]):
+            value_2d[j, i] = (value_2d[j+1, i] + value_2d[j-1, i] + value_2d[j, i-1]) / (3 + 3*W) + (
+                             value_2d[j+1, i-1] + value_2d[j-1, i-1]) * W / (2 + 2*W)
 
-    return value_return
+    for i in range(1, value_2d.shape[1]-1):
+        j = 0
+        if np.isnan(value_2d[j, i]):
+            value_2d[j, i] = (value_2d[j+1, i] + value_2d[j, i-1] + value_2d[j, i+1]) / (3 + 3*W) + (
+                             value_2d[j+1, i+1] + value_2d[j+1, i-1]) * W / (2 + 2*W)
+        j = value_2d.shape[0]-1
+        if np.isnan(value_2d[j, i]):
+            value_2d[j, i] = (value_2d[j, i+1] + value_2d[j-1, i] + value_2d[j, i-1]) / (3 + 3*W) + (
+                             value_2d[j-1, i+1] + value_2d[j-1, i-1]) * W / (2 + 2*W)
+
+    if np.isnan(value_2d[0, 0]):
+        value_2d[0, 0] = (value_2d[1, 0] + value_2d[0, 1]) / (2 + 2*W) + value_2d[1, 1] * W / (1 + 1*W)
+    if np.isnan(value_2d[-1, 0]):
+        value_2d[-1, 0] = (value_2d[-2, 0] + value_2d[-1, 1]) / (2 + 2*W) + value_2d[-2, 1] * W / (1 + 1*W)
+    if np.isnan(value_2d[0, -1]):
+        value_2d[0, -1] = (value_2d[0, -2] + value_2d[1, -1]) / (2 + 2*W) + value_2d[1, -2] * W / (1 + 1*W)
+    if np.isnan(value_2d[-1, -1]):
+        value_2d[-1, -1] = (value_2d[-1, -2] + value_2d[-2, -1]) / (2 + 2*W) + value_2d[-2, -2] * W / (1 + 1*W)
+
+    return value_2d
 
 
 def error_vector_interp_2d(vector_x, vector_y, eps=0.3, thresh=5):

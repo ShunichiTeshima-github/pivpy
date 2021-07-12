@@ -19,6 +19,7 @@ def _correlation_list(
         int(search_window[1] - search_window[0] + 1), int(search_window[3] - search_window[2] + 1), int(x_grid.shape[0] * x_grid.shape[1])))
 
     for j in range(x_grid.shape[0]):
+        print('%d / %d' % (j, x_grid.shape[0]))
         for i in range(x_grid.shape[1]):
             if cal_area[j, i] == 1:
                 index_j = int(y_grid[j, i])
