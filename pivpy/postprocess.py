@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import copy
+import cv2
 import numpy as np
+from scipy import ndimage
 
 
 def _interpolate_nan(value):
@@ -170,3 +172,14 @@ def error_vector_interp_3d(vector_x, vector_y, vector_z, eps=0.3, thresh=5):
     vector_y = _interpolation(vector_y.copy(), filter_error)
     vector_z = _interpolation(vector_z.copy(), filter_error)
     return vector_x, vector_y, vector_z, filter_error
+
+
+def smoothing(src, mode='gauss', ksize=21):
+    if mode == 'gauss':
+        ret = cv2.GaussianBlur(src, ksize=(ksize, ksize), sigmaX=3)
+    elif mode == 'median':
+        ret = ndimage.median_filter(src, size=ksize)
+    else:
+        print('Error')
+        return src
+    return ret
