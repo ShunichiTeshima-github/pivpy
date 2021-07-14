@@ -175,6 +175,8 @@ def error_vector_interp_3d(vector_x, vector_y, vector_z, eps=0.3, thresh=5):
 
 
 def smoothing(src, mode='gauss', ksize=21):
+    src_save = copy.deepcopy(src)
+    src_save[src_save == 0.0] = np.nan
     if mode == 'gauss':
         ret = cv2.GaussianBlur(src, ksize=(ksize, ksize), sigmaX=3)
     elif mode == 'median':
@@ -182,4 +184,14 @@ def smoothing(src, mode='gauss', ksize=21):
     else:
         print('Error')
         return src
+    src_expand = np.zeros((src.shape[0] + ksize*2, src.shape[1] + ksize*2))
+    src_expand[:, :] = np.nan
+    src_expand[ksize:-ksize, ksize:-ksize] = src_save
+    for j in range(src.shape[0]):
+        for i in range(src.shape[1]):
+            if np.isnan(src_save[j, i]):
+                ret[j, i] = np.nan
+            elif np.isnan(ret[j, i]) and ~np.isnan(src_save[j, i]):
+                window = src_expand[j-int(ksize//2)+ksize:j-int(ksize//2)+2*ksize, i-int(ksize//2)+ksize:i-int(ksize//2)+2*ksize]
+                ret[j, i] = np.nanmean(window)
     return ret
