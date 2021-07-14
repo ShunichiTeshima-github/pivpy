@@ -46,6 +46,7 @@ def _correlation_map(window_img0, img1, interrogation_window, search_window, ind
                 if window_img0.shape == window_img1.shape:
                     correlation_map[abs(search_window[0]) + dj, abs(search_window[2]) + di
                                     ] = np.corrcoef(window_img0.flatten(), window_img1.flatten())[0, 1]
+    correlation_map[np.isnan(correlation_map)] = 0.0
 
     return correlation_map
 
